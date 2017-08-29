@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>particle concept</title>
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
-    <style>
+	<title>particle concept</title>
+	<style>
     html,
     body {
         padding: 0;
@@ -12,15 +10,27 @@
         font-family: 'Roboto Condensed', Helvetica, Arial, Sans-serif;
     }
 
-    canvas {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        top: 0;
-        z-index: 0;
-    }
+	canvas {
+	  display: block;
+	  position: relative;
+	  zindex: 1;
+	  pointer-events: none;
+	}
 
+	#banner{
+		position: absolute;
+		top: 0;
+		width: 100%;
+		text-align: center;
+		font-weight: bold;
+		font-size: 46px;
+		text-transform: uppercase;
+		font-style: italic;
+		background: #00c9ff;
+		color: white;
+		padding: 30px;
+		display: none;
+	}
 	#pricecontainer{
 		width: 150px;
     	position: absolute;
@@ -67,12 +77,11 @@
     	color: #24c1eb;
     	font-weight: bold;
     }
-    </style>
-
+	</style>
 </head>
-
 <body>
-    <canvas id="canvas"></canvas>
+	<div id="banner">Welcome to the VIP family!</div>
+
     <div id="pricecontainer">
     	<div class="vipmessage">
     		Yay! Welcome To The VIP Family!
@@ -86,177 +95,224 @@
 	    	</div>
     	</div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script>
-    canvas = document.getElementById("canvas");
-    context = canvas.getContext("2d");
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
 
-    
-    particle = [];
-    particleCount = 0,
-        gravity = 0.3,
-        colors = [
-            '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
-            '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
-            '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
-            '#FF5722', '#795548'
-        ];
+	<canvas id="canvas"></canvas>
 
-	$("#price").click(function(e){
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script>
 
-		//$(".getthisprice").fadeOut();
-		$(".getthisprice").css('display','none');
-		$(".vipprice")
-			.html('VIP: $103.46<br/>You saved<br/>$15')
-			.addClass('vippriceselected');
-		$(".vipmessage").fadeIn(1000);
+    // globals
+    var canvas;
+    var ctx;
+    var W;
+    var H;
+    var mp = 100; //max particles
+    var particles = [];
+    var angle = 0;
+    var tiltAngle = 0;
+    var confettiActive = true;
+    var animationComplete = true;
+    var animationHandler;
+    var reactivationTimerHandler;
 
-		// Calculate coords of mouse click
-		var offset = $(this).offset();
-		var clickX = e.pageX - offset.left;
-		var clickY = e.pageY - offset.top;
+    // objects
+    var particleColors = {
+        colorOptions: ["DodgerBlue", "OliveDrab", "Gold", "pink", "SlateBlue", "lightblue", "Violet", "PaleGreen", "SteelBlue", "SandyBrown", "Chocolate", "Crimson"],
+        dualColorOptions: [
+        {'main': "DodgerBlue", 'alt': 'steelblue'}, 
+        {'main': "OliveDrab", 'alt': 'DarkOliveGreen'}, 
+        {'main': "Gold", 'alt': 'DarkKhaki'}, 
+        {'main': "Pink", 'alt': 'PaleVioletRed'}, 
+        {'main': "lightblue", 'alt': 'LightSteelBlue'}, 
+        {'main': "Violet", 'alt': 'Orchid'}, 
+        {'main': "PaleGreen", 'alt': 'YellowGreen'}, 
+        {'main': "SandyBrown", 'alt': 'Peru'}, 
+        {'main': "Chocolate", 'alt': 'Sienna'}, 
+        {'main': "Crimson", 'alt': 'FireBrick'}],
+        colorIndex: 0,
+        colorIncrementer: 0,
+        colorThreshold: 10,
+        getColor: function () {
+            if (this.colorIncrementer >= 10) {
+                this.colorIncrementer = 0;
+                this.colorIndex++;
+                if (this.colorIndex >= this.dualColorOptions.length) {
+                    this.colorIndex = 0;
+                }
+            }
+            this.colorIncrementer++;
+            return this.dualColorOptions[this.colorIndex];
+        }
+    }
 
-		// Hardcode confetti launch point for demo, replace with dynamic in actual implementation
-		clickX = 575;
-		clickY = 600;
+    function confettiParticle(colorOptions) {
+        this.x = Math.random() * W; // x-coordinate
+        this.y = (Math.random() * H) - H; //y-coordinate
+        this.r = RandomFromTo(10, 30); //radius;
+        this.d = (Math.random() * mp) + 10; //density;
+        this.colorOptions = colorOptions;
+        this.tilt = Math.floor(Math.random() * 10) - 10;
+        this.tiltAngleIncremental = (Math.random() * 0.07) + .05;
+        this.tiltAngle = 0;
 
-		console.log(clickX + ', ' + clickY);
+        this.draw = function () {
+            ctx.beginPath();
+            ctx.lineWidth = this.r / 2;
+            ctx.strokeStyle = this.color;
+            ctx.moveTo(this.x + this.tilt + (this.r / 4), this.y);
+            ctx.lineTo(this.x + this.tilt, this.y + this.tilt + (this.r / 4));
+            return ctx.stroke();
+        }
+    }
 
-	    for (var i = 0; i < 20; i++) {
-	        particle.push({
-	            x: clickX,
-	            y: clickY,
-	            boxW: randomRange(5, 20),
-	            boxH: randomRange(5, 20),
-	            size: randomRange(2, 8),
+    $(document).ready(function () {
+    	//$("#price").click(function(e){
+	        SetGlobals();
+	        InitializeConfetti();
 
-	            spikeran: randomRange(3, 5),
-
-	            // velX: randomRange(-8, 8),
-	            // velY: randomRange(-50, -10),
-
-				velX: randomRange(-4, 4),
-	            velY: randomRange(-20, -10),
-
-	            angle: convertToRadians(randomRange(0, 360)),
-	            color: colors[Math.floor(Math.random() * colors.length)],
-	            anglespin: randomRange(-0.2, 0.2),
-
-	            draw: function() {
-	                context.save();
-	                context.translate(this.x, this.y);
-	                context.rotate(this.angle);
-	                context.fillStyle = this.color;
-	                context.beginPath();
-	                context.fillRect(this.boxW / 2 * -1, this.boxH / 2 * -1, this.boxW, this.boxH);
-	                context.fill();
-	                context.closePath();
-	                context.restore();
-	                this.angle += this.anglespin;
-	                this.velY *= 0.999;
-	                this.velY += 0.3;
-
-	                this.x += this.velX;
-	                this.y += this.velY;
-
-	                // Sets ceiling so particles don't go above top of browser
-	                if (this.y < 0) {
-	                    this.velY *= -0.2;
-	                    this.velX *= 0.9;
-	                };
-
-	                // Sets floor so particles don't fall off screen
-	                // if (this.y > height) {
-	                //     this.anglespin = 0;
-	                //     this.y = height;
-	                //     this.velY *= -0.2;
-	                //     this.velX *= 0.9;
-	                // };
-
-	                if (this.x > width || this.x < 0) {
-	                    this.velX *= -0.5;
-	                };
-	            },
+	        $(window).resize(function () {
+	            W = window.innerWidth;
+	            H = window.innerHeight;
+	            canvas.width = W;
+	            canvas.height = H;
 	        });
-	    }
+        //});
+    });
 
-	    r1 = {
-	        x: width / 50,
-	        y: height / 50,
-	        width: 300,
-	        height: 300,
-	        velX: 0,
-	        velY: -10,
-	        img: loadImage(""),
-	        alphatop: 0
-	    };
+    function SetGlobals() {
+        canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+    }
 
-	    function drawScreen() {
-	        size = 50;
-	        //pFontName = "Lucida Sans Unicode";
-	        //context.font = size + "pt " + pFontName;
-	        context.fillText("", width / 2, 150);
-	        if (r1.alphatop < 1) {
-	            r1.alphatop += 0.01;
-	        } else {
-	            r1.alphatop = 1;
-	        }
-	        context.globalAlpha = r1.alphatop;
-	        context.drawImage(r1.img, r1.x, r1.y);
-	        
-	        if (r1.alphatop === 1) {
-	            r1.velY *= 0.999;
-	            r1.velY += 0.3;
+    function InitializeConfetti() {
+    	
+        particles = [];
+        animationComplete = false;
+        for (var i = 0; i < mp; i++) {
+            var particleColor = particleColors.getColor();
+            particles.push(new confettiParticle(particleColor));
+        }
+        $("#price").click(function(e){
+        	StartConfetti();
+        	$('#banner').fadeIn(1000);
+        });
+    }
 
-	            r1.x += r1.velX;
-	            r1.y += r1.velY;
-	        }
+    function Draw() {
+        ctx.clearRect(0, 0, W, H);
+        var results = [];
+        for (var i = 0; i < mp; i++) {
+            (function (j) {
+                results.push(particles[j].draw());
+            })(i);
+        }
+        Update();
 
-	        if (r1.y + r1.height > height) {
-	            r1.anglespin = 0;
-	            r1.y = height - r1.height;
-	            r1.velY *= -0.8;
-	            r1.velX *= 0.9;
-	        };
+        return results;
+    }
 
-	        context.globalAlpha = 1;
+    function RandomFromTo(from, to) {
+        return Math.floor(Math.random() * (to - from + 1) + from);
+    }
 
-	        for (var i = 0; i < particle.length; i++) {
-	            particle[i].draw();
-	        }
 
-	    }
+    function Update() {
+        var remainingFlakes = 0;
+        var particle;
+        angle += 0.01;
+        tiltAngle += 0.1;
 
-	    function loadImage(url) {
-	        var img = document.createElement("img");
-	        img.src = url;
-	        return img;
-	    }
+        for (var i = 0; i < mp; i++) {
+            particle = particles[i];
+            if (animationComplete) return;
 
-	    function update() {
-	        context.clearRect(0, 0, width, height);
-	        drawScreen();
-	        requestAnimationFrame(update);
-	    }
+            if (!confettiActive && particle.y < -15) {
+                particle.y = H + 100;
+                continue;
+            }
 
-	    update();
+            stepParticle(particle, i);
 
-	    function randomRange(min, max) {
-	        return min + Math.random() * (max - min);
-	    }
+            if (particle.y <= H) {
+                remainingFlakes++;
+            }
+            CheckForReposition(particle, i);
+        }
 
-	    function randomInt(min, max) {
-	        return Math.floor(min + Math.random() * (max - min + 1));
-	    }
+        if (remainingFlakes === 0) {
+            StopConfetti();
+        }
+    }
 
-	    function convertToRadians(degree) {
-	        return degree * (Math.PI / 180);
-	    }
+    function CheckForReposition(particle, index) {
+        if ((particle.x > W + 20 || particle.x < -20 || particle.y > H) && confettiActive) {
+            if (index % 5 > 0 || index % 2 == 0) //66.67% of the flakes
+            {
+                repositionParticle(particle, Math.random() * W, -10, Math.floor(Math.random() * 10) - 10);
+            } else {
+                if (Math.sin(angle) > 0) {
+                    //Enter from the left
+                    repositionParticle(particle, -5, Math.random() * H, Math.floor(Math.random() * 10) - 10);
+                } else {
+                    //Enter from the right
+                    repositionParticle(particle, W + 5, Math.random() * H, Math.floor(Math.random() * 10) - 10);
+                }
+            }
+        }
+    }
+    function stepParticle(particle, particleIndex) {
+        particle.tiltAngle += particle.tiltAngleIncremental;
+        particle.y += (Math.cos(angle + particle.d) + 3 + particle.r / 2) / 2;
+        particle.x += Math.sin(angle);
+        particle.tilt = (Math.sin(particle.tiltAngle - (particleIndex / 3))) * 15;
+        particle.color = particle.tilt > 0 ? particle.colorOptions.main : particle.colorOptions.alt;
+    }
 
-	});
-    </script>
+    function repositionParticle(particle, xCoordinate, yCoordinate, tilt) {
+        particle.x = xCoordinate;
+        particle.y = yCoordinate;
+        particle.tilt = tilt;
+    }
+
+    function StartConfetti() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+        (function animloop() {
+            if (animationComplete) return null;
+            animationHandler = requestAnimFrame(animloop);
+            return Draw();
+        })();
+    }
+
+    function DeactivateConfetti() {
+        confettiActive = false;
+        ClearTimers();
+        $('#banner').fadeOut(1000);
+    }
+    function ClearTimers() {
+        clearTimeout(reactivationTimerHandler);
+        clearTimeout(animationHandler);
+    }
+    function StopConfetti() {
+        animationComplete = true;
+        if (ctx == undefined) return;
+        ctx.clearRect(0, 0, W, H);
+    }
+
+	setInterval(function(){DeactivateConfetti()},3500);
+
+    window.requestAnimFrame = (function () {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+            return window.setTimeout(callback, 1000 / 60);
+        };
+    })();
+	</script>
+
 </body>
-
 </html>
