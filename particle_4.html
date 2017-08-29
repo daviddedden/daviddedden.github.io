@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>particle concept</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    <style>
+    html,
+    body {
+        padding: 0;
+        margin: 0;
+        font-family: 'Roboto Condensed', Helvetica, Arial, Sans-serif;
+    }
+
+    canvas {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: 0;
+        z-index: 0;
+    }
+
+	#pricecontainer{
+		width: 150px;
+    	position: absolute;
+    	top: 500px;
+    	left: 500px;
+    	text-align: center;
+	}
+
+    #price{
+    	border: 1px solid #24c1eb;
+    	cursor: pointer;
+    }
+
+    .vipprice{
+    	padding: 10px;
+    }
+
+    .getthisprice{
+    	background: #24c1eb;
+    	color: #fff;
+    	display: block;
+    	font-style: italic;
+    	font-size: 18px;
+    	padding: 10px;
+    	text-decoration: none;
+    	text-transform: uppercase;
+    }
+
+    .getthispricevip{
+		font-size: 20px;
+		font-weight: bold;
+    }
+
+    .vipmessage{
+    	font-size: 22px;
+    	font-weight: bold;
+    	font-style: italic;
+    	text-transform: uppercase;
+    	padding-bottom: 10px;
+    	display: none;
+    }
+
+    .vippriceselected{
+    	color: #24c1eb;
+    	font-weight: bold;
+    }
+    </style>
+
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="pricecontainer">
+    	<div class="vipmessage">
+    		Yay! Welcome To The VIP Family!
+    	</div>
+    	<div id="price">
+	    	<div class="vipprice">
+	    		<span class="getthispricevip">$103.46</span>
+	    	</div>
+	    	<div href="#" class="getthisprice">
+	    		Get This Price
+	    	</div>
+    	</div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+    canvas = document.getElementById("canvas");
+    context = canvas.getContext("2d");
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+
+    
+    particle = [];
+    particleCount = 0,
+        gravity = 0.3,
+        colors = [
+            '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
+            '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
+            '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
+            '#FF5722', '#795548'
+        ];
+
+	$("#price").click(function(e){
+
+		//$(".getthisprice").fadeOut();
+		$(".getthisprice").css('display','none');
+		$(".vipprice")
+			.html('VIP: $103.46<br/>You saved<br/>$15')
+			.addClass('vippriceselected');
+		$(".vipmessage").fadeIn(1000);
+
+		// Calculate coords of mouse click
+		var offset = $(this).offset();
+		var clickX = e.pageX - offset.left;
+		var clickY = e.pageY - offset.top;
+
+		// Hardcode confetti launch point for demo, replace with dynamic in actual implementation
+		clickX = 575;
+		clickY = 600;
+
+		console.log(clickX + ', ' + clickY);
+
+	    for (var i = 0; i < 20; i++) {
+	        particle.push({
+	            x: clickX,
+	            y: clickY,
+	            boxW: randomRange(5, 20),
+	            boxH: randomRange(5, 20),
+	            size: randomRange(2, 8),
+
+	            spikeran: randomRange(3, 5),
+
+	            // velX: randomRange(-8, 8),
+	            // velY: randomRange(-50, -10),
+
+				velX: randomRange(-4, 4),
+	            velY: randomRange(-20, -10),
+
+	            angle: convertToRadians(randomRange(0, 360)),
+	            color: colors[Math.floor(Math.random() * colors.length)],
+	            anglespin: randomRange(-0.2, 0.2),
+
+	            draw: function() {
+	                context.save();
+	                context.translate(this.x, this.y);
+	                context.rotate(this.angle);
+	                context.fillStyle = this.color;
+	                context.beginPath();
+	                context.fillRect(this.boxW / 2 * -1, this.boxH / 2 * -1, this.boxW, this.boxH);
+	                context.fill();
+	                context.closePath();
+	                context.restore();
+	                this.angle += this.anglespin;
+	                this.velY *= 0.999;
+	                this.velY += 0.3;
+
+	                this.x += this.velX;
+	                this.y += this.velY;
+
+	                // Sets ceiling so particles don't go above top of browser
+	                if (this.y < 0) {
+	                    this.velY *= -0.2;
+	                    this.velX *= 0.9;
+	                };
+
+	                // Sets floor so particles don't fall off screen
+	                // if (this.y > height) {
+	                //     this.anglespin = 0;
+	                //     this.y = height;
+	                //     this.velY *= -0.2;
+	                //     this.velX *= 0.9;
+	                // };
+
+	                if (this.x > width || this.x < 0) {
+	                    this.velX *= -0.5;
+	                };
+	            },
+	        });
+	    }
+
+	    r1 = {
+	        x: width / 50,
+	        y: height / 50,
+	        width: 300,
+	        height: 300,
+	        velX: 0,
+	        velY: -10,
+	        img: loadImage(""),
+	        alphatop: 0
+	    };
+
+	    function drawScreen() {
+	        size = 50;
+	        //pFontName = "Lucida Sans Unicode";
+	        //context.font = size + "pt " + pFontName;
+	        context.fillText("", width / 2, 150);
+	        if (r1.alphatop < 1) {
+	            r1.alphatop += 0.01;
+	        } else {
+	            r1.alphatop = 1;
+	        }
+	        context.globalAlpha = r1.alphatop;
+	        context.drawImage(r1.img, r1.x, r1.y);
+	        
+	        if (r1.alphatop === 1) {
+	            r1.velY *= 0.999;
+	            r1.velY += 0.3;
+
+	            r1.x += r1.velX;
+	            r1.y += r1.velY;
+	        }
+
+	        if (r1.y + r1.height > height) {
+	            r1.anglespin = 0;
+	            r1.y = height - r1.height;
+	            r1.velY *= -0.8;
+	            r1.velX *= 0.9;
+	        };
+
+	        context.globalAlpha = 1;
+
+	        for (var i = 0; i < particle.length; i++) {
+	            particle[i].draw();
+	        }
+
+	    }
+
+	    function loadImage(url) {
+	        var img = document.createElement("img");
+	        img.src = url;
+	        return img;
+	    }
+
+	    function update() {
+	        context.clearRect(0, 0, width, height);
+	        drawScreen();
+	        requestAnimationFrame(update);
+	    }
+
+	    update();
+
+	    function randomRange(min, max) {
+	        return min + Math.random() * (max - min);
+	    }
+
+	    function randomInt(min, max) {
+	        return Math.floor(min + Math.random() * (max - min + 1));
+	    }
+
+	    function convertToRadians(degree) {
+	        return degree * (Math.PI / 180);
+	    }
+
+	});
+    </script>
+</body>
+
+</html>
