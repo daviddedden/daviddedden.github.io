@@ -106,7 +106,7 @@
     var ctx;
     var W;
     var H;
-    var mp = 100; //max particles
+    var mp = 150; //max particles
     var particles = [];
     var angle = 0;
     var tiltAngle = 0;
@@ -293,11 +293,11 @@
     function DeactivateConfetti() {
         confettiActive = false;
         ClearTimers();
-        $('#banner').fadeOut(1000);
     }
     function ClearTimers() {
         clearTimeout(reactivationTimerHandler);
         clearTimeout(animationHandler);
+        setInterval(function(){$('#banner').fadeOut(1000);},2000);
     }
     function StopConfetti() {
         animationComplete = true;
@@ -305,7 +305,7 @@
         ctx.clearRect(0, 0, W, H);
     }
 
-	setInterval(function(){DeactivateConfetti()},3500);
+	setInterval(function(){DeactivateConfetti()},1500);
 
     window.requestAnimFrame = (function () {
         return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
