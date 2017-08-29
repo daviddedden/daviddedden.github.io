@@ -30,6 +30,7 @@
 		color: white;
 		padding: 30px;
 		display: none;
+		z-index: 5;
 	}
 	#pricecontainer{
 		width: 150px;
@@ -167,15 +168,15 @@
 
     $(document).ready(function () {
     	//$("#price").click(function(e){
-	        SetGlobals();
-	        InitializeConfetti();
+        SetGlobals();
+        InitializeConfetti();
 
-	        $(window).resize(function () {
-	            W = window.innerWidth;
-	            H = window.innerHeight;
-	            canvas.width = W;
-	            canvas.height = H;
-	        });
+        $(window).resize(function () {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+        });
         //});
     });
 
@@ -292,7 +293,7 @@
 
     function DeactivateConfetti() {
         confettiActive = false;
-        ClearTimers();
+        ClearTimers();        
     }
     function ClearTimers() {
         clearTimeout(reactivationTimerHandler);
