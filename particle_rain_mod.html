@@ -102,91 +102,43 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script>
 
-    // globals
+    // Global Variables
+
     var canvas;
-    var ctx;
-    var W;
-    var H;
-    var mp = 150; //max particles
+    var context;
+
+    var width;
+    var height;
+    
+    var maxConfetti = 150; // Sets max number of confetti pieces
     var particles = [];
+    
     var angle = 0;
     var tiltAngle = 0;
+    
     var confettiActive = true;
-    var animationComplete = true;
+    var animationDone = true;
     var animationHandler;
     var reactivationTimerHandler;
+    
     var startYet = false;
 
-    // objects
-    var particleColors = {
-        colorOptions: ["DodgerBlue", "OliveDrab", "Gold", "pink", "SlateBlue", "lightblue", "Violet", "PaleGreen", "SteelBlue", "SandyBrown", "Chocolate", "Crimson"],
-        dualColorOptions: [
-        {'main': "DodgerBlue", 'alt': 'steelblue'}, 
-        {'main': "OliveDrab", 'alt': 'DarkOliveGreen'}, 
-        {'main': "Gold", 'alt': 'DarkKhaki'}, 
-        {'main': "Pink", 'alt': 'PaleVioletRed'}, 
-        {'main': "lightblue", 'alt': 'LightSteelBlue'}, 
-        {'main': "Violet", 'alt': 'Orchid'}, 
-        {'main': "PaleGreen", 'alt': 'YellowGreen'}, 
-        {'main': "SandyBrown", 'alt': 'Peru'}, 
-        {'main': "Chocolate", 'alt': 'Sienna'}, 
-        {'main': "Crimson", 'alt': 'FireBrick'}],
-        colorIndex: 0,
-        colorIncrementer: 0,
-        colorThreshold: 10,
-        getColor: function () {
-            if (this.colorIncrementer >= 10) {
-                this.colorIncrementer = 0;
-                this.colorIndex++;
-                if (this.colorIndex >= this.dualColorOptions.length) {
-                    this.colorIndex = 0;
-                }
-            }
-            this.colorIncrementer++;
-            return this.dualColorOptions[this.colorIndex];
-        }
-    }
-
-    function confettiParticle(colorOptions) {
-        this.x = Math.random() * W; // x-coordinate
-        this.y = (Math.random() * H) - H; //y-coordinate
-        this.r = RandomFromTo(10, 30); //radius;
-        this.d = (Math.random() * mp) + 10; //density;
-        this.colorOptions = colorOptions;
-        this.tilt = Math.floor(Math.random() * 10) - 10;
-        this.tiltAngleIncremental = (Math.random() * 0.07) + .05;
-        this.tiltAngle = 0;
-
-        this.draw = function () {
-            ctx.beginPath();
-            ctx.lineWidth = this.r / 2;
-            ctx.strokeStyle = this.color;
-            ctx.moveTo(this.x + this.tilt + (this.r / 4), this.y);
-            ctx.lineTo(this.x + this.tilt, this.y + this.tilt + (this.r / 4));
-            return ctx.stroke();
-        }
-    }
-
-
+    // Document init
 
     $(document).ready(function () {
 
-    	//$("#price").click(function(e){
         SetGlobals();
         InitializeConfetti();
 
         $(window).resize(function () {
             W = window.innerWidth;
-            H = window.innerHeight;
-            canvas.width = W;
-            canvas.height = H;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
         });
-        //});
-
-        
 
         $("#price").click(function(e){
-            console.log(startYet);
+
             if(startYet){
                 RestartConfetti();
             } else {
@@ -194,28 +146,62 @@
                 startYet = true;
             }
 
-        	$('#banner')
-        		//.fadeIn(1000)
-        		.slideDown( "slow");
+            $('#banner').slideDown( "slow");
+
         });
 
     });
 
+    // Functions
+
+    // Initializes browser window canvas
     function SetGlobals() {
         canvas = document.getElementById("canvas");
-        ctx = canvas.getContext("2d");
-        W = window.innerWidth;
-        H = window.innerHeight;
-        canvas.width = W;
-        canvas.height = H;
+        context = canvas.getContext("2d");
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+
+    // Generates random hex value color for confetti
+    function getColor(){
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Creates confetti particle
+    function confettiParticle(colorOptions) {
+        this.x = Math.random() * width; // x-coordinate
+        this.y = (Math.random() * height) - height; //y-coordinate
+        this.r = RandomFromTo(10, 30); //radius;
+        this.d = (Math.random() * maxConfetti) + 10; //density;
+        this.colorOptions = colorOptions;
+        this.tilt = Math.floor(Math.random() * 10) - 10;
+        this.tiltAngleStep = (Math.random() * 0.07) + .05;
+        this.tiltAngle = 0;
+        this.draw = function () {
+            context.beginPath();
+            context.lineWidth = this.r / 3;
+            context.strokeStyle = this.color;
+            context.moveTo(this.x + this.tilt + (this.r / 4), this.y);
+            context.lineTo(this.x + this.tilt, this.y + this.tilt + (this.r / 4));
+            return context.stroke();
+        }
     }
 
     function InitializeConfetti() {
     	
         particles = [];
-        animationComplete = false;
-        for (var i = 0; i < mp; i++) {
-            var particleColor = particleColors.getColor();
+
+        animationDone = false;
+
+        for (var i = 0; i < maxConfetti; i++) {
+            var particleColor = getColor();
             particles.push(new confettiParticle(particleColor));
         }
 
@@ -227,19 +213,16 @@
 
     function Draw() {
 
-        ctx.clearRect(0, 0, W, H);
-
+        context.clearRect(0, 0, width, height);
         var results = [];
-
-        for (var i = 0; i < mp; i++) {
+        for (var i = 0; i < maxConfetti; i++) {
             (function (j) {
                 results.push(particles[j].draw());
             })(i);
         }
-
         Update();
-
         return results;
+
     }
 
     function RandomFromTo(from, to) {
@@ -248,7 +231,6 @@
 
     }
 
-
     function Update() {
 
         var remainingFlakes = 0;
@@ -256,18 +238,18 @@
         angle += 0.01;
         tiltAngle += 0.1;
 
-        for (var i = 0; i < mp; i++) {
+        for (var i = 0; i < maxConfetti; i++) {
             particle = particles[i];
-            if (animationComplete) return;
+            if (animationDone) return;
 
             if (!confettiActive && particle.y < -15) {
-                particle.y = H + 100;
+                particle.y = height + 100;
                 continue;
             }
 
             stepParticle(particle, i);
 
-            if (particle.y <= H) {
+            if (particle.y <= height) {
                 remainingFlakes++;
             }
             CheckForReposition(particle, i);
@@ -279,28 +261,28 @@
     }
 
     function CheckForReposition(particle, index) {
-        if ((particle.x > W + 20 || particle.x < -20 || particle.y > H) && confettiActive) {
+        if ((particle.x > width + 20 || particle.x < -20 || particle.y > height) && confettiActive) {
             if (index % 5 > 0 || index % 2 == 0) //66.67% of the flakes
             {
-                repositionParticle(particle, Math.random() * W, -10, Math.floor(Math.random() * 10) - 10);
+                repositionParticle(particle, Math.random() * width, -10, Math.floor(Math.random() * 10) - 10);
             } else {
                 if (Math.sin(angle) > 0) {
                     //Enter from the left
-                    repositionParticle(particle, -5, Math.random() * H, Math.floor(Math.random() * 10) - 10);
+                    repositionParticle(particle, -5, Math.random() * height, Math.floor(Math.random() * 10) - 10);
                 } else {
                     //Enter from the right
-                    repositionParticle(particle, W + 5, Math.random() * H, Math.floor(Math.random() * 10) - 10);
+                    repositionParticle(particle, width + 5, Math.random() * height, Math.floor(Math.random() * 10) - 10);
                 }
             }
         }
     }
 
     function stepParticle(particle, particleIndex) {
-        particle.tiltAngle += particle.tiltAngleIncremental;
+        particle.tiltAngle += particle.tiltAngleStep;
         particle.y += (Math.cos(angle + particle.d) + 3 + particle.r / 2) / 2;
         particle.x += Math.sin(angle);
         particle.tilt = (Math.sin(particle.tiltAngle - (particleIndex / 3))) * 15;
-        particle.color = particle.tilt > 0 ? particle.colorOptions.main : particle.colorOptions.alt;
+        particle.color = particle.colorOptions;
     }
 
     function repositionParticle(particle, xCoordinate, yCoordinate, tilt) {
@@ -310,12 +292,12 @@
     }
 
     function StartConfetti() {
-        W = window.innerWidth;
-        H = window.innerHeight;
-        canvas.width = W;
-        canvas.height = H;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
         (function animloop() {
-            if (animationComplete) return null;
+            if (animationDone) return null;
             animationHandler = requestAnimFrame(animloop);
             return Draw();
         })();
@@ -326,23 +308,26 @@
         confettiActive = false;
         ClearTimers();        
     }
+
     function ClearTimers() {
         clearTimeout(reactivationTimerHandler);
         clearTimeout(animationHandler);
         setInterval(function(){$('#banner').fadeOut(1000);},2000);
     }
+
     function StopConfetti() {
-        animationComplete = true;
-        if (ctx == undefined) return;
-        ctx.clearRect(0, 0, W, H);
+        animationDone = true;
+        if (context == undefined) return;
+        context.clearRect(0, 0, width, height);
     }
+
     function RestartConfetti() {
         console.log('restart');
         ClearTimers();
         StopConfetti();
         reactivationTimerHandler = setTimeout(function () {
             confettiActive = true;
-            animationComplete = false;
+            animationDone = false;
             InitializeConfetti();
         }, 100);
 
