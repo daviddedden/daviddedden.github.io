@@ -102,7 +102,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script>
 
-    // Global Variables
+    // Global variables
 
     var canvas;
     var context;
@@ -110,7 +110,7 @@
     var width;
     var height;
     
-    var maxConfetti = 150; // Sets max number of confetti pieces
+    var maxConfetti = 125; // Sets max number of confetti pieces
     var particles = [];
     
     var angle = 0;
@@ -124,14 +124,13 @@
     var startYet = false;
 
     // Document init
-
     $(document).ready(function () {
 
         SetGlobals();
         InitializeConfetti();
 
         $(window).resize(function () {
-            W = window.innerWidth;
+            width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
@@ -156,29 +155,34 @@
 
     // Initializes browser window canvas
     function SetGlobals() {
+
         canvas = document.getElementById("canvas");
         context = canvas.getContext("2d");
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
+
     }
 
     // Generates random hex value color for confetti
     function getColor(){
+
         var letters = '0123456789ABCDEF';
         var color = '#';
         for (var i = 0; i < 6; i++) {
             color += letters[Math.floor(Math.random() * 16)];
         }
         return color;
+
     }
 
     // Creates confetti particle
     function confettiParticle(colorOptions) {
+
         this.x = Math.random() * width; // x-coordinate
         this.y = (Math.random() * height) - height; //y-coordinate
-        this.r = RandomFromTo(10, 30); //radius;
+        this.r = Math.floor(Math.random() * (30 - 10 + 1) + 10); //radius;
         this.d = (Math.random() * maxConfetti) + 10; //density;
         this.colorOptions = colorOptions;
         this.tilt = Math.floor(Math.random() * 10) - 10;
@@ -192,8 +196,10 @@
             context.lineTo(this.x + this.tilt, this.y + this.tilt + (this.r / 4));
             return context.stroke();
         }
+
     }
 
+    // Confetti init
     function InitializeConfetti() {
     	
         particles = [];
@@ -211,87 +217,79 @@
 
     }
 
+    // Draw confetti particle
     function Draw() {
 
         context.clearRect(0, 0, width, height);
+
         var results = [];
+
         for (var i = 0; i < maxConfetti; i++) {
             (function (j) {
                 results.push(particles[j].draw());
             })(i);
         }
+
         Update();
+
         return results;
 
     }
 
-    function RandomFromTo(from, to) {
-
-        return Math.floor(Math.random() * (to - from + 1) + from);
-
-    }
-
+    // Update confetti particle, step through frames
     function Update() {
 
-        var remainingFlakes = 0;
-        var particle;
+        var remainingConfetti = 0;
+        var confetti;
         angle += 0.01;
         tiltAngle += 0.1;
 
         for (var i = 0; i < maxConfetti; i++) {
-            particle = particles[i];
+            confetti = particles[i];
             if (animationDone) return;
 
-            if (!confettiActive && particle.y < -15) {
-                particle.y = height + 100;
+            if (!confettiActive && confetti.y < -15) {
+                confetti.y = height + 100;
                 continue;
             }
 
-            stepParticle(particle, i);
+            stepParticle(confetti, i);
 
-            if (particle.y <= height) {
-                remainingFlakes++;
+            if (confetti.y <= height) {
+                remainingConfetti++;
             }
-            CheckForReposition(particle, i);
+        
         }
 
-        if (remainingFlakes === 0) {
+        if (remainingConfetti === 0) {
             StopConfetti();
         }
+
     }
 
-    function CheckForReposition(particle, index) {
-        if ((particle.x > width + 20 || particle.x < -20 || particle.y > height) && confettiActive) {
-            if (index % 5 > 0 || index % 2 == 0) //66.67% of the flakes
-            {
-                repositionParticle(particle, Math.random() * width, -10, Math.floor(Math.random() * 10) - 10);
-            } else {
-                if (Math.sin(angle) > 0) {
-                    //Enter from the left
-                    repositionParticle(particle, -5, Math.random() * height, Math.floor(Math.random() * 10) - 10);
-                } else {
-                    //Enter from the right
-                    repositionParticle(particle, width + 5, Math.random() * height, Math.floor(Math.random() * 10) - 10);
-                }
-            }
-        }
-    }
-
+    // Animate confetti
     function stepParticle(particle, particleIndex) {
+
         particle.tiltAngle += particle.tiltAngleStep;
         particle.y += (Math.cos(angle + particle.d) + 3 + particle.r / 2) / 2;
         particle.x += Math.sin(angle);
         particle.tilt = (Math.sin(particle.tiltAngle - (particleIndex / 3))) * 15;
         particle.color = particle.colorOptions;
+
     }
 
-    function repositionParticle(particle, xCoordinate, yCoordinate, tilt) {
-        particle.x = xCoordinate;
-        particle.y = yCoordinate;
-        particle.tilt = tilt;
+    // Clear animation timers, hide VIP banner
+    function ClearTimers() {
+
+        clearTimeout(reactivationTimerHandler);
+        clearTimeout(animationHandler);
+        setInterval(function(){$('#banner').fadeOut(1000);},2000);
+
     }
 
+    // Start confetti animation loop, stop generation after a certain period
     function StartConfetti() {
+
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = width;
@@ -302,27 +300,29 @@
             return Draw();
         })();
         setInterval(function(){DeactivateConfetti()},1200);
+
     }
 
+    // Stop confetti animation and clear timers
     function DeactivateConfetti() {
+
         confettiActive = false;
         ClearTimers();        
+        
     }
 
-    function ClearTimers() {
-        clearTimeout(reactivationTimerHandler);
-        clearTimeout(animationHandler);
-        setInterval(function(){$('#banner').fadeOut(1000);},2000);
-    }
-
+    // Stop confetting entirely and clear canvas
     function StopConfetti() {
+
         animationDone = true;
         if (context == undefined) return;
         context.clearRect(0, 0, width, height);
+
     }
 
+    // Restart confetti if user clicks link again after removing VIP from cart
     function RestartConfetti() {
-        console.log('restart');
+
         ClearTimers();
         StopConfetti();
         reactivationTimerHandler = setTimeout(function () {
@@ -333,6 +333,7 @@
 
     }
 
+    // Browser animation frame function
     window.requestAnimFrame = (function () {
         return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
             return window.setTimeout(callback, 1000 / 60);
