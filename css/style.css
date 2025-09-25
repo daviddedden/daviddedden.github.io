@@ -1,9 +1,13 @@
 body {
-  background-color: #211E1D;
+  /* background-color: #211E1D; */
   color: #333;
   font-family: 'Castoro', serif;
   font-size: 24px; 
 } 
+
+main{
+  background-color: #FEFAF3;
+}
 
 a{
   color: #00B8B5;
