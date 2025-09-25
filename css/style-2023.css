@@ -1,0 +1,68 @@
+body {
+  background-color: #202124;
+  color: #BAB6B1;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 300;
+  font-size: 20px; 
+} 
+
+a{
+  color: #00B8B5;
+}
+
+a:hover{
+  color: #FF5E5B;
+}
+
+a.nav-link{
+ color: #333;
+}
+
+a.nav-link:hover{
+  color: #00B8B5;
+}
+
+footer{
+  font-size: 14px;
+}
+
+footer a{
+  display: inline-block;
+}
+
+.dd-footer-social{
+  margin-bottom: 16px;
+}
+
+.dd-footer-social-link{
+  margin-right: 16px;
+  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(323deg) brightness(128%) contrast(102%);
+  width: 24px;
+}
+
+object{
+  pointer-events: none;
+}
+
+h1, h2{
+  font-size: 20px; 
+  color: #fff;
+}
+
+.nav{
+  font-size: 18px;
+}
+
+.fade-in-text {
+  animation: fadeIn 1s;
+  -webkit-animation: fadeIn 1s;
+  -moz-animation: fadeIn 1s;
+  -o-animation: fadeIn 1s;
+  -ms-animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+

@@ -1,0 +1,99 @@
+body {
+  color: #583C1C;
+  font-family: 'EB Garamond', serif;
+  font-weight: 400;
+  font-size: 22px; 
+  /* -webkit-font-smoothing: antialiased; */
+} 
+
+main{
+  background-color: #FEFAF3;
+}
+
+a{
+  color: #583C1C;
+}
+
+a:hover{
+  color: #FF5E5B;
+}
+
+a.nav-link{
+ color: #333;
+}
+
+a.nav-link:hover{
+  color: #00B8B5;
+}
+
+.dd-intro-icon{
+  margin-left: 6px;
+  /* filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(323deg) brightness(128%) contrast(102%); */
+  filter: invert(23%) sepia(17%) saturate(1859%) hue-rotate(352deg) brightness(89%) contrast(86%);
+  width: 20px;
+  margin-top: -8px;
+}
+
+footer{
+  font-size: 12px;
+  text-transform: uppercase;
+  background-color: #fff;
+}
+
+footer a{
+  display: inline-block;
+}
+
+.dd-footer-social{
+  margin-bottom: 16px;
+}
+
+.dd-footer-social-link{
+  margin-right: 16px;
+  /* filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(323deg) brightness(128%) contrast(102%); */
+  filter: invert(23%) sepia(17%) saturate(1859%) hue-rotate(352deg) brightness(89%) contrast(86%);
+  width: 24px;
+}
+
+object{
+  pointer-events: none;
+}
+
+h1, h2{
+  font-size: 22px; 
+  font-weight: 600;
+  
+}
+
+h1 a{
+  text-decoration: none;
+}
+
+.nav{
+  font-size: 18px;
+}
+
+.badge{
+  background-color: #583C1C !important;
+  font-size: 10px;
+  text-transform: uppercase;
+  vertical-align:middle;
+}
+
+/* .dd-fav-2023 li span{
+  font-style: italic;
+} */
+
+.fade-in-text {
+  animation: fadeIn 1s;
+  -webkit-animation: fadeIn 1s;
+  -moz-animation: fadeIn 1s;
+  -o-animation: fadeIn 1s;
+  -ms-animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
